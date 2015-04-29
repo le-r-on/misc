@@ -23,7 +23,7 @@ logger = confugure_logging()
 
 session = requests.Session()
 BASE_URL = 'http://booking.uz.gov.ua/en/'
-SEARCH_URL = 'https://booking.uz.gov.ua/en/purchase/search/'
+SEARCH_URL = 'http://booking.uz.gov.ua/en/purchase/search/'
 PASSWORD = ''
 
 trans = {
