@@ -1,6 +1,8 @@
 import argparse
+import getpass
 import logging
 import random
+import smtplib
 import sys
 import time
 
@@ -22,6 +24,7 @@ logger = confugure_logging()
 session = requests.Session()
 BASE_URL = 'http://booking.uz.gov.ua/en/'
 SEARCH_URL = 'https://booking.uz.gov.ua/en/purchase/search/'
+PASSWORD = ''
 
 trans = {
     '$$$': '7',
@@ -56,15 +59,31 @@ def get_token_and_cookie():
         token.append(trans[elem.split('.')[1]])
     return ''.join(token)
 
+def send_notification(msg):
+    fromaddr = 'bodnarchuk.roman@gmail.com'
+    toaddrs  = 'bodnarchuk.roman@gmail.com'
+
+    # Credentials (if needed)
+    username = 'bodnarchuk.roman@gmail.com'
+
+    # The actual mail send
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.starttls()
+    server.login(username, PASSWORD)
+    server.sendmail(fromaddr, toaddrs, msg)
+    server.quit()
 
 def main():
-
     parser = argparse.ArgumentParser(description='Monitor UZ tickets.')
     parser.add_argument('--from-station', help='From station, int', required=True)
     parser.add_argument('--to-station', help='To station, int', required=True)
     parser.add_argument('--date', help='Departure date, like 16.05.2015', required=True)
 
     args = parser.parse_args()
+
+    global PASSWORD
+    PASSWORD = getpass.getpass('gmail password >')
+    send_notification('Started!')
 
     while True:
         try:
@@ -93,12 +112,18 @@ def execute(from_station, to_station, date):
     }
 
     resp = None
+    found = False
     try:
         while True:
             resp = session.post(SEARCH_URL, data=data, headers=headers, timeout=3)
             result = resp.json()
             if not result.get('error'):
                 logger.info('Found train! {}'.format(result))
+                if not found:
+                    send_notification(result)
+                    found = True
+            else:
+                found = False
             time.sleep(random.randint(3, 7))
             logger.info('Alive')
     finally:
