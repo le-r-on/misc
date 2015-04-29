@@ -66,11 +66,21 @@ def send_notification(msg):
     # Credentials (if needed)
     username = 'bodnarchuk.roman@gmail.com'
 
+    if isinstance(msg, basestring):
+        final_msg = 'Subject:{}'.format(msg)
+    else:
+        info = msg['value'][0]
+        final_msg = 'Subject:{} {} for train from {} to {}'.format(
+            info['types'][0]['places'],
+            info['types'][0]['title'],
+            info['from']['station'],
+            info['till']['station'])
+
     # The actual mail send
     server = smtplib.SMTP('smtp.gmail.com:587')
     server.starttls()
     server.login(username, PASSWORD)
-    server.sendmail(fromaddr, toaddrs, msg)
+    server.sendmail(fromaddr, toaddrs, final_msg)
     server.quit()
 
 def main():
